@@ -445,6 +445,7 @@ By combining historical market prices, lag-based features, and ensemble learning
 The results show that neighboring market prices and recent German price history are the most influential factors in short-term electricity price prediction.
 
 # Author
+Rabiya Farheen MSc Data Science, Technical University of Braunschweig, Germany
 
 
 The project provides a strong foundation for further research and real-world energy market forecasting applications.
