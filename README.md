@@ -1,415 +1,111 @@
-# Electricity Price Forecasting Using Machine Learning
+# EU Day-Ahead Electricity Price Forecasting
 
-## Overview
+End-to-end time series project: data cleaning → EDA → feature engineering → model training → evaluation → BI dashboard.
+Forecasts Germany's hourly day-ahead electricity price for 2022 using its own price history and four
+neighboring markets (France, Italy, Belgium, Spain), validated with walk-forward cross-validation rather
+than a single train/test split.
 
-This project develops a machine learning-based forecasting system for predicting hourly electricity prices in Germany using historical market prices from neighboring European countries and engineered time-series features.
+**[Full notebook with all outputs and plots →](notebooks/01_eu_electricity_price_forecasting.ipynb)**
 
-The workflow includes:
+## Why this dataset is a real test, not a toy problem
 
-* Data preprocessing and cleaning
-* Exploratory Data Analysis (EDA)
-* Feature engineering
-* Baseline forecasting
-* Random Forest modeling
-* Hyperparameter tuning
-* Walk-forward validation
-* Model explainability using SHAP
-* XGBoost benchmarking
-* Performance evaluation and comparison
+2022 was the year of the European energy crisis — Germany's price roughly **quadrupled** from spring lows
+(~€100/MWh) to a late-August peak (~€800+/MWh), then collapsed back down by year-end. Any model has to cope
+with a genuine regime shift mid-year, not a stable, easy signal.
 
-The objective is to build an accurate and interpretable forecasting model for short-term electricity price prediction.
-
----
-
-# Dataset
-
-The dataset contains hourly electricity prices for multiple European countries:
-
-* Germany (Target Variable)
-* France
-* Belgium
-* Italy
-* Spain
-* United Kingdom
-
-### Dataset Characteristics
-
-* Hourly observations
-* One year of data
-* 8,760 rows (365 × 24 hours)
-* No missing values after preprocessing
-
----
-
-# Methodology
-
-## 1. Data Preprocessing
-
-The following preprocessing steps were performed:
-
-### Datetime Conversion
-
-Timestamp columns were converted to datetime format and sorted chronologically.
-
-### Frequency Standardization
-
-Data was resampled to an hourly frequency.
-
-### Missing Value Handling
-
-Missing values were handled using:
-
-```python
-ffill()
-bfill()
-```
-
-After preprocessing:
-
-```text
-Missing Values = 0
-```
-
----
-
-# Exploratory Data Analysis
-
-Several analyses were performed to understand market behavior.
-
-## Price Distribution
-
-Distribution plots revealed:
-
-* Right-skewed distributions
-* High volatility
-* Occasional price spikes
-
-These characteristics are typical of electricity markets.
-
----
-
-## Correlation Analysis
-
-A correlation heatmap was generated to identify relationships between countries.
-
-Key findings:
-
-| Country Pair      | Correlation |
-| ----------------- | ----------- |
-| Germany – Belgium | ~0.95       |
-| Germany – France  | ~0.86       |
-| Germany – Italy   | ~0.84       |
-| Germany – Spain   | ~0.17       |
-
-Belgium and France showed the strongest relationships with Germany.
-
----
-
-## Temporal Analysis
-
-Hourly and weekly price patterns were analyzed.
-
-Observed patterns:
-
-* Morning demand peaks
-* Evening demand peaks
-* Lower weekend prices
-* Seasonal variations
-
----
-
-# Feature Engineering
-
-Several feature groups were created to improve predictive performance.
-
----
-
-## Time Features
-
-```python
-hour
-dayofweek
-month
-is_weekend
-```
-
-These features capture seasonality and calendar effects.
-
----
-
-## Lag Features
-
-```python
-germany_lag_1
-germany_lag_2
-germany_lag_24
-germany_lag_168
-```
-
-Where:
-
-* Lag 1 = Previous hour
-* Lag 2 = Two hours ago
-* Lag 24 = Same hour previous day
-* Lag 168 = Same hour previous week
-
----
-
-## Rolling Statistics
-
-```python
-germany_roll_mean_24
-germany_roll_std_24
-```
-
-These capture short-term trends and volatility.
-
-To avoid data leakage:
-
-```python
-rolling(...).shift(1)
-```
-
-was used.
-
----
-
-## Cross-Country Features
-
-Lagged values from neighboring countries were added:
-
-```python
-france_lag_1
-belgium_lag_1
-italy_lag_1
-spain_lag_1
-uk_lag_1
-```
-
-These features help capture interconnected European electricity markets.
-
----
-
-# Baseline Model
-
-A simple persistence model was used as a benchmark.
-
-## Naive Forecast
-
-```text
-Prediction(t) = Price(t-24)
-```
-
-The previous day's same-hour price was used as the forecast.
-
-This baseline provides a meaningful comparison against machine learning models.
-
----
-
-# Random Forest Model
-
-A Random Forest Regressor was trained using all engineered features.
-
-## Advantages
-
-* Handles non-linear relationships
-* Robust to noise
-* Supports feature importance analysis
-* Strong performance on tabular datasets
-
----
-
-# Hyperparameter Tuning
-
-Randomized Search with TimeSeriesSplit was used.
-
-## Search Space
-
-Parameters optimized:
-
-```python
-n_estimators
-max_depth
-min_samples_split
-min_samples_leaf
-max_features
-```
-
-### Best Parameters
-
-```python
-{
-    'n_estimators': 800,
-    'min_samples_split': 2,
-    'min_samples_leaf': 2,
-    'max_features': 1.0,
-    'max_depth': 15
-}
-```
-
----
-
-# Walk-Forward Validation
-
-Time-series cross-validation was implemented using:
-
-```python
-TimeSeriesSplit
-```
-
-This approach ensures:
-
-* No future information leakage
-* Realistic forecasting evaluation
-* Robust performance estimates
-
----
-
-# SHAP Explainability
-
-SHAP (SHapley Additive exPlanations) was used to interpret model decisions.
-
-## Most Important Features
-
-| Feature       | Importance |
-| ------------- | ---------- |
-| germany_lag_1 | 79.0%      |
-| belgium       | 17.5%      |
-| france        | 1.5%       |
-| germany_lag_2 | 0.3%       |
-| belgium_lag_1 | 0.3%       |
-
-### Interpretation
-
-The model relies primarily on:
-
-1. Previous German electricity prices
-2. Belgian electricity prices
-3. French electricity prices
-
-This aligns with correlation analysis and domain knowledge.
-
----
-
-# Model Performance
-
-## Tuned Random Forest
-
-| Metric | Value  |
-| ------ | ------ |
-| MAE    | 10.898 |
-| RMSE   | 19.021 |
-| WAPE   | 5.47%  |
-
-### Performance Interpretation
-
-A WAPE below 6% indicates strong forecasting performance for electricity price prediction.
-
----
-
-# XGBoost Benchmark
-
-An XGBoost model was trained as a benchmark.
+![Germany price over time](images/04_germany_timeseries.png)
 
 ## Results
 
-| Metric | Value  |
-| ------ | ------ |
-| MAE    | 11.570 |
-| RMSE   | 17.708 |
-| WAPE   | 5.81%  |
+| Model | Holdout MAE | Holdout RMSE | Holdout WAPE | Walk-forward CV MAE (mean ± std) |
+|---|---|---|---|---|
+| Naive (t-24) | 45.15 | 61.01 | 22.68% | — |
+| **Linear Regression** | **14.34** | **20.09** | **7.21%** | **19.34 ± 5.74** |
+| Random Forest | 16.51 | 23.34 | 8.30% | 23.50 ± 12.86 |
+| XGBoost | 17.39 | 23.92 | 8.73% | 26.65 ± 20.31 |
 
----
+All three models beat the naive baseline by a wide margin. **Linear Regression wins on both accuracy and
+stability** across folds — a useful reminder that more complex models aren't automatically better, especially
+for a strongly autoregressive series like this one, and that conclusion only became visible by testing with
+walk-forward CV instead of trusting a single split.
 
-## Comparison
+![Model comparison](images/09_holdout_mae_comparison.png)
+![Actual vs predicted](images/11_actual_vs_predicted.png)
 
-| Model                 | MAE    | RMSE   | WAPE  |
-| --------------------- | ------ | ------ | ----- |
-| Random Forest (Tuned) | 10.898 | 19.021 | 5.47% |
-| XGBoost               | 11.570 | 17.708 | 5.81% |
+## Two correctness bugs this project explicitly fixes (and shows the fix for)
 
-### Conclusion
+An earlier draft of this pipeline had two mistakes that are common enough to be worth calling out directly,
+with evidence, rather than glossing over:
 
-* Random Forest achieved the lowest MAE and WAPE.
-* XGBoost achieved the lowest RMSE.
-* Random Forest was selected as the final model due to superior overall forecasting accuracy.
+1. **Target leakage in rolling features.** `pandas.rolling()` is right-inclusive by default, so
+   `df[target].rolling(24).mean()` at time *t* includes the value being predicted. The fix is a `.shift(1)`
+   before `.rolling()`. The notebook (§4) measures the leak's effect directly — both as a feature-level
+   correlation gap and as an end-to-end holdout MAE comparison — and reports the honest result: the leak is
+   a real correctness issue, concentrated in the most volatile periods, but its measured impact on *this*
+   model is small because a single dominant lag feature already captures most of the signal. The fix is
+   kept regardless of measured size, because a feature that can see its own target is not a performance
+   trade-off to weigh — it's a bug that happens to look fine in a backtest.
+2. **MAPE on a series that crosses zero.** Electricity prices can be at, near, or below zero (real, due to
+   renewable oversupply), so dividing by `y_true` explodes — the original version of this project reported
+   MAPE values over 3,000,000%. Replaced with MAE, RMSE, and WAPE, none of which break down near zero.
 
----
+## Project structure
 
-# Key Findings
-
-### Germany's Previous Hour Price is the Strongest Predictor
-
-```text
-Importance = 79%
+```
+.
+├── data/
+│   └── electricity_dah_prices.csv        # raw hourly prices, 6 countries, 2022
+├── src/
+│   ├── data_cleaning.py                  # datetime parsing, DST handling, gap/outlier handling
+│   ├── feature_engineering.py            # leak-free lag/rolling/cross-country/time features
+│   └── modeling.py                       # models, holdout eval, walk-forward CV, metrics
+├── notebooks/
+│   └── 01_eu_electricity_price_forecasting.ipynb   # the full story, executed end-to-end
+├── images/                               # every chart from the notebook, as standalone PNGs
+├── dashboard/
+│   ├── fact_hourly_prices.csv            # long-format prices + data-quality flags
+│   ├── fact_predictions.csv              # holdout actual vs. every model's prediction + residuals
+│   ├── model_metrics.csv                 # holdout + walk-forward CV metrics, tidy format
+│   ├── feature_importance.csv           # standardized LR coefficients + RF/XGB importances
+│   ├── seasonality_summary.csv           # precomputed hour/day/month averages per country
+│   └── README_dashboard.md               # chart-by-chart Tableau/Power BI build guide
+├── outputs/
+│   └── df_clean.csv                      # cleaned hourly dataset, all 6 countries
+└── requirements.txt
 ```
 
-### Belgium Has Significant Influence
+## What's covered, end to end
 
-```text
-Importance = 17.5%
+- **Data cleaning**: timestamp parsing from a raw string range, EU DST duplicate-hour resolution, reindexing
+  onto a complete hourly grid, short-gap interpolation vs. long-gap imputation (with an explicit flag column
+  for the latter — UK is missing 1,442 hours across 9 separate blocks, including all of July), and outlier
+  capping (France has a 2-hour, ~3,000 EUR/MWh spike, ~3.5x its own 99.9th percentile).
+- **EDA**: per-country distributions, a cross-country correlation heatmap (Spain stands out as decoupled —
+  consistent with the EU gas-price-cap mechanism it had for part of 2022), a missingness calendar, an
+  annotated time series with the energy-crisis period marked, hour/day/month seasonality, and ACF/PACF
+  plots used to justify the lag choices in feature engineering rather than picking them arbitrarily.
+- **Feature engineering**: cyclical time encodings, lags chosen from the ACF/PACF evidence (1, 2, 3, 24, 48,
+  168h), leak-free rolling statistics, and lagged cross-country features (UK deliberately excluded — see
+  the cleaning section for why).
+- **Modeling**: Naive baseline, Linear Regression, Random Forest, XGBoost.
+- **Evaluation**: a chronological holdout *and* 5-fold walk-forward cross-validation, residual diagnostics
+  (over time and distribution), and feature importance (standardized LR coefficients alongside RF
+  importances, so they're actually comparable).
+- **Dashboard**: five purpose-built CSV exports plus a chart-by-chart Tableau/Power BI build guide.
+
+## Limitations & next steps
+
+- Single year of data — no validation across multiple yearly cycles or crisis/non-crisis regimes.
+- No exogenous fundamentals (gas prices, wind/solar generation, demand forecasts) — the real economic
+  drivers of electricity prices aren't in this dataset; cross-country lags act as an indirect proxy.
+- UK excluded from modeling due to a genuine ~16% data gap; a production version would need a real UK feed.
+- Natural next steps: add weather/generation-mix features, try a quantile-regression or SARIMAX model to get
+  uncertainty bands (residual variance clearly scales with price level — see §7), and extend to multi-country,
+  multi-horizon forecasting using the cross-country correlation structure already confirmed in the EDA.
+
+## Running it yourself
+
+```bash
+pip install -r requirements.txt
+jupyter notebook notebooks/01_eu_electricity_price_forecasting.ipynb
 ```
-
-### France Provides Additional Predictive Power
-
-```text
-Importance = 1.5%
-```
-
-### Time Features Contribute Less Than Expected
-
-Hourly and seasonal information are largely captured indirectly through lagged prices.
-
----
-
-# Technologies Used
-
-## Programming Language
-
-* Python 3.x
-
-## Libraries
-
-```python
-pandas
-numpy
-matplotlib
-seaborn
-scikit-learn
-xgboost
-shap
-```
-
----
-
-# Future Improvements
-
-Potential enhancements include:
-
-* LightGBM implementation
-* Deep learning models (LSTM, GRU, Transformer)
-* Holiday and weather features
-* Renewable energy production data
-* Electricity demand forecasting integration
-* Probabilistic forecasting
-* Multi-step forecasting horizons
-
----
-
-# Conclusion
-
-This project demonstrates a complete end-to-end machine learning workflow for electricity price forecasting.
-
-By combining historical market prices, lag-based features, and ensemble learning methods, the final Random Forest model achieved:
-
-* MAE: 10.898
-* RMSE: 19.021
-* WAPE: 5.47%
-
-The results show that neighboring market prices and recent German price history are the most influential factors in short-term electricity price prediction. The project provides a strong foundation for further research and real-world energy market forecasting applications.
-
-# Author
-Rabiya Farheen MSc Data Science, Technical University of Braunschweig, Germany
-
-
-
