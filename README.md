@@ -406,10 +406,10 @@ By combining historical market prices, lag-based features, and ensemble learning
 * RMSE: 19.021
 * WAPE: 5.47%
 
-The results show that neighboring market prices and recent German price history are the most influential factors in short-term electricity price prediction.
+The results show that neighboring market prices and recent German price history are the most influential factors in short-term electricity price prediction. The project provides a strong foundation for further research and real-world energy market forecasting applications.
 
 # Author
 Rabiya Farheen MSc Data Science, Technical University of Braunschweig, Germany
 
 
-The project provides a strong foundation for further research and real-world energy market forecasting applications.
+
