@@ -78,3 +78,5 @@ with evidence, rather than glossing over:
   multi-horizon forecasting using the cross-country correlation structure already confirmed in the EDA.
 
 # Author
+Rabiya Farheen
+Master’s in Data Science (Germany)
