@@ -382,42 +382,6 @@ shap
 
 ---
 
-# Installation
-
-Clone the repository:
-
-```bash
-git clone https://github.com/yourusername/electricity-price-forecasting.git
-
-cd electricity-price-forecasting
-```
-
-Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
----
-
-# Running the Project
-
-Launch Jupyter Notebook:
-
-```bash
-jupyter notebook
-```
-
-Open:
-
-```text
-electricity_price_forecasting.ipynb
-```
-
-Run all cells sequentially.
-
----
-
 # Future Improvements
 
 Potential enhancements include:
