@@ -5,7 +5,7 @@ Forecasts Germany's hourly day-ahead electricity price for 2022 using its own pr
 neighboring markets (France, Italy, Belgium, Spain), validated with walk-forward cross-validation rather
 than a single train/test split.
 
-**[Full notebook with all outputs and plots →](notebooks/01_eu_electricity_price_forecasting.ipynb)**
+
 
 ## Why this dataset is a real test, not a toy problem
 
@@ -13,7 +13,7 @@ than a single train/test split.
 (~€100/MWh) to a late-August peak (~€800+/MWh), then collapsed back down by year-end. Any model has to cope
 with a genuine regime shift mid-year, not a stable, easy signal.
 
-![Germany price over time](images/04_germany_timeseries.png)
+
 
 ## Results
 
@@ -29,8 +29,6 @@ stability** across folds — a useful reminder that more complex models aren't a
 for a strongly autoregressive series like this one, and that conclusion only became visible by testing with
 walk-forward CV instead of trusting a single split.
 
-![Model comparison](images/09_holdout_mae_comparison.png)
-![Actual vs predicted](images/11_actual_vs_predicted.png)
 
 ## Two correctness bugs this project explicitly fixes (and shows the fix for)
 
@@ -49,30 +47,6 @@ with evidence, rather than glossing over:
    renewable oversupply), so dividing by `y_true` explodes — the original version of this project reported
    MAPE values over 3,000,000%. Replaced with MAE, RMSE, and WAPE, none of which break down near zero.
 
-## Project structure
-
-```
-.
-├── data/
-│   └── electricity_dah_prices.csv        # raw hourly prices, 6 countries, 2022
-├── src/
-│   ├── data_cleaning.py                  # datetime parsing, DST handling, gap/outlier handling
-│   ├── feature_engineering.py            # leak-free lag/rolling/cross-country/time features
-│   └── modeling.py                       # models, holdout eval, walk-forward CV, metrics
-├── notebooks/
-│   └── 01_eu_electricity_price_forecasting.ipynb   # the full story, executed end-to-end
-├── images/                               # every chart from the notebook, as standalone PNGs
-├── dashboard/
-│   ├── fact_hourly_prices.csv            # long-format prices + data-quality flags
-│   ├── fact_predictions.csv              # holdout actual vs. every model's prediction + residuals
-│   ├── model_metrics.csv                 # holdout + walk-forward CV metrics, tidy format
-│   ├── feature_importance.csv           # standardized LR coefficients + RF/XGB importances
-│   ├── seasonality_summary.csv           # precomputed hour/day/month averages per country
-│   └── README_dashboard.md               # chart-by-chart Tableau/Power BI build guide
-├── outputs/
-│   └── df_clean.csv                      # cleaned hourly dataset, all 6 countries
-└── requirements.txt
-```
 
 ## What's covered, end to end
 
@@ -103,9 +77,4 @@ with evidence, rather than glossing over:
   uncertainty bands (residual variance clearly scales with price level — see §7), and extend to multi-country,
   multi-horizon forecasting using the cross-country correlation structure already confirmed in the EDA.
 
-## Running it yourself
-
-```bash
-pip install -r requirements.txt
-jupyter notebook notebooks/01_eu_electricity_price_forecasting.ipynb
-```
+# Author
